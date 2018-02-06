@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torch
 from torch.autograd import Variable
 
-max_num_generation = 10
+max_num_generation = 5
 n = 4
 lock = mp.Lock()
 
@@ -44,14 +44,25 @@ def train_loop(master):
         print("worker %d model ready" % i)
         print(id(workers[i].model))
 
-    p = mp.Process(target=rollout, args=(workers[2], max_eps_len,))
-    p.start()
-    processes.append(p)
-    time.sleep(0.1)
+    # rollout(workers[2], max_eps_len)
 
-    # for p in processes:
-    #     time.sleep(0.1)
-    #     p.join()
+    # p = mp.Process(target=rollout, args=(workers[2], max_eps_len,))
+    # p.start()
+    # processes.append(p)
+    # time.sleep(0.1)
+
+    # p.join()
+
+    for i in range(n):
+        p = mp.Process(target=workers[i].do_rollout, args=(max_eps_len,))
+        p.start()
+        processes.append(p)
+        time.sleep(0.1)
+
+    for p in processes:
+        time.sleep(0.1)
+        p.join()
+
     for i in range(n):
         master.pull_return(workers[i])
         workers[i].reset()
