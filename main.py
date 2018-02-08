@@ -11,7 +11,6 @@ n = 4
 lock = mp.Lock()
 
 
-
 def train_loop(master):
     master.generate_seeds()
     processes = []

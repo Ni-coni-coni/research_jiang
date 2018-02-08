@@ -31,11 +31,13 @@ if __name__ == '__main__':
 
     obs = env.reset()
 
+    print(model)
+
     for i in range(10):
 
         state = torch.from_numpy(obs)
 
-        action_linear = model.forward(Variable(state.unsqueeze(0)))
+        action_linear = model(Variable(state.unsqueeze(0)))
         print('action_linear:', action_linear)
         prob = F.softmax(action_linear)
         print('prob:', prob)
