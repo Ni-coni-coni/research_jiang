@@ -1,30 +1,21 @@
 import torch
 import gym
-import my_model
 import time
 import copy
 import master
 import worker
 import torch.multiprocessing as mp
-import csv
 from env_wrapper import wrap_dqn
-import os
 
 if __name__ == '__main__':
-    os.environ['OMP_NUM_THREADS'] = '1'
-    os.environ['CUDA_VISIBLE_DEVICES'] = ""
     debug = False
     env_name = 'PongNoFrameskip-v0'
     env = wrap_dqn(gym.make(env_name))
-    n = 200
-    sigma = 0.05
+    n = 24
+    sigma = 0.5
     alpha = 0.1
     seed = 100
-    max_num_generation = 100000
-    with open("csv/" + env_name + "_n" + str(n) + ".csv", "w") as csvfile:
-        writer = csv.writer(csvfile, lineterminator='\n')
-        writer.writerow(["frame_total", "score"])
-    csvfile.close()
+    max_num_generation = 100
     queues_model = []
     queues_eval = []
     for rank in range(n):
@@ -42,17 +33,19 @@ if __name__ == '__main__':
         p_worker = worker.WorkerProcess(n, rank, sigma, queues_model[rank], queues_eval[rank],
                                         max_num_generation, env_name)
         p_workers.append(p_worker)
+        p_worker.start()
 
         # time.sleep(0.1)
     p_master.start()
     for p_worker in p_workers:
         p_worker.start()
+        time.sleep(0.05)
 
     p_master.join()
     print("process ", p_master, " join")
 
     for p_worker in p_workers:
-        time.sleep(0.01)
+        time.sleep(0.1)
         p_worker.join()
         print("process ", p_worker, " join")
 
